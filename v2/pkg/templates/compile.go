@@ -13,7 +13,6 @@ import (
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols/common/executer"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols/offlinehttp"
-	"github.com/projectdiscovery/nuclei/v2/pkg/templates/cache"
 	"github.com/projectdiscovery/nuclei/v2/pkg/utils"
 	stringsutil "github.com/projectdiscovery/utils/strings"
 )
@@ -22,21 +21,11 @@ var (
 	ErrCreateTemplateExecutor = errors.New("cannot create template executer")
 )
 
-var parsedTemplatesCache *cache.Templates
-
-func init() {
-	parsedTemplatesCache = cache.New()
-}
-
 // Parse parses a yaml request template file
 // TODO make sure reading from the disk the template parsing happens once: see parsers.ParseTemplate vs templates.Parse
 //
 //nolint:gocritic // this cannot be passed by pointer
 func Parse(filePath string, preprocessor Preprocessor, options protocols.ExecuterOptions) (*Template, error) {
-	if value, err := parsedTemplatesCache.Has(filePath); value != nil {
-		return value.(*Template), err
-	}
-
 	var reader io.ReadCloser
 	if utils.IsURL(filePath) {
 		resp, err := http.Get(filePath)
@@ -66,7 +55,6 @@ func Parse(filePath string, preprocessor Preprocessor, options protocols.Execute
 		template.CompiledWorkflow.Options = &options
 	}
 	template.Path = filePath
-	parsedTemplatesCache.Store(filePath, template, err)
 	return template, nil
 }
 
