@@ -131,7 +131,7 @@ func executeNucleiAsCode(templatePath, templateURL string) ([]string, error) {
 	store.Load()
 
 	input := &inputs.SimpleInputProvider{Inputs: []*contextargs.MetaInput{{Input: templateURL}}}
-	_ = engine.Execute(store.Templates(), input)
+	_ = engine.Execute(context.Background(), store.Templates(), input)
 	engine.WorkPool().Wait() // Wait for the scan to finish
 
 	return results, nil

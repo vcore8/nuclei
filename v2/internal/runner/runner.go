@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	json_exporter "github.com/projectdiscovery/nuclei/v2/pkg/reporting/exporters/jsonexporter"
 	"io"
 	"net/http"
 	_ "net/http/pprof"
@@ -17,6 +16,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	json_exporter "github.com/projectdiscovery/nuclei/v2/pkg/reporting/exporters/jsonexporter"
 
 	"github.com/projectdiscovery/nuclei/v2/internal/runner/nucleicloud"
 
@@ -664,7 +665,7 @@ func (r *Runner) executeTemplatesInput(store *loader.Store, engine *core.Engine)
 	// tracks global progress and captures stdout/stderr until p.Wait finishes
 	r.progress.Init(r.hmapInputProvider.Count(), templateCount, totalRequests)
 
-	results := engine.ExecuteScanWithOpts(finalTemplates, r.hmapInputProvider, true)
+	results := engine.ExecuteScanWithOpts(context.Background(), finalTemplates, r.hmapInputProvider, true)
 	return results, nil
 }
 
