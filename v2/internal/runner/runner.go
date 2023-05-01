@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"github.com/projectdiscovery/nuclei/v2/internal/installer"
-	"github.com/projectdiscovery/nuclei/v2/internal/runner/nucleicloud"
-	updateutils "github.com/projectdiscovery/utils/update"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/pkg/errors"
+	"github.com/projectdiscovery/nuclei/v2/internal/runner/nucleicloud"
 	"github.com/projectdiscovery/ratelimit"
+	updateutils "github.com/projectdiscovery/utils/update"
 
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/nuclei/v2/internal/colorizer"
@@ -673,7 +673,7 @@ func (r *Runner) executeTemplatesInput(store *loader.Store, engine *core.Engine)
 	// tracks global progress and captures stdout/stderr until p.Wait finishes
 	r.progress.Init(r.hmapInputProvider.Count(), templateCount, totalRequests)
 
-	results := engine.ExecuteScanWithOpts(finalTemplates, r.hmapInputProvider, true)
+	results := engine.ExecuteScanWithOpts(context.Background(), finalTemplates, r.hmapInputProvider, true)
 	return results, nil
 }
 
