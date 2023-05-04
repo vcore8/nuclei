@@ -89,6 +89,6 @@ func main() {
 	inputArgs := []*contextargs.MetaInput{{Input: "docs.hackerone.com"}}
 
 	input := &inputs.SimpleInputProvider{Inputs: inputArgs}
-	_ = engine.Execute(store.Templates(), input)
+	_ = engine.Execute(context.Background(), store.Templates(), input)
 	engine.WorkPool().Wait() // Wait for the scan to finish
 }
