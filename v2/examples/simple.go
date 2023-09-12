@@ -101,6 +101,6 @@ func main() {
 	// use httpx to probe the URL => https://scanme.sh
 	input.SetWithProbe("scanme.sh", httpxClient)
 
-	_ = engine.Execute(store.Templates(), input)
+	_ = engine.Execute(context.Background(), store.Templates(), input)
 	engine.WorkPool().Wait() // Wait for the scan to finish
 }

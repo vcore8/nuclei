@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 
@@ -16,28 +17,40 @@ import (
 // Executors are low level executors that deals with template execution on a target
 
 // executeAllSelfContained executes all self contained templates that do not use `target`
-func (e *Engine) executeAllSelfContained(alltemplates []*templates.Template, results *atomic.Bool, sg *sync.WaitGroup) {
+func (e *Engine) executeAllSelfContained(ctx context.Context, alltemplates []*templates.Template, results *atomic.Bool, sg *sync.WaitGroup) {
 	for _, v := range alltemplates {
 		sg.Add(1)
-		go func(template *templates.Template) {
+		go func(ctx context.Context, template *templates.Template) {
 			defer sg.Done()
-			var err error
-			var match bool
-			if e.Callback != nil {
-				err = template.Executer.ExecuteWithResults(contextargs.New(), func(event *output.InternalWrappedEvent) {
-					for _, result := range event.Results {
-						e.Callback(result)
-					}
-				})
-				match = true
-			} else {
-				match, err = template.Executer.Execute(contextargs.New())
+			c := make(chan bool, 1)
+
+			go func() {
+				var err error
+				var match bool
+				if e.Callback != nil {
+					err = template.Executer.ExecuteWithResults(contextargs.New(), func(event *output.InternalWrappedEvent) {
+						for _, result := range event.Results {
+							e.Callback(result)
+						}
+					})
+					match = true
+				} else {
+					match, err = template.Executer.Execute(contextargs.New())
+				}
+				if err != nil {
+					gologger.Warning().Msgf("[%s] Could not execute step: %s\n", e.executerOpts.Colorizer.BrightBlue(template.ID), err)
+				}
+				results.CompareAndSwap(false, match)
+				c <- true
+			}()
+
+			select {
+			case <-ctx.Done():
+				return
+			case <-c:
+				return
 			}
-			if err != nil {
-				gologger.Warning().Msgf("[%s] Could not execute step: %s\n", e.executerOpts.Colorizer.BrightBlue(template.ID), err)
-			}
-			results.CompareAndSwap(false, match)
-		}(v)
+		}(ctx, v)
 	}
 }
 
