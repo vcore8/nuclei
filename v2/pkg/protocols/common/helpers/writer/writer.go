@@ -17,6 +17,7 @@ func WriteResult(data *output.InternalWrappedEvent, output output.Writer, progre
 	}
 	var matched bool
 	for _, result := range data.Results {
+		result.MatchedResponse = data.OperatorsResult.MatchedResponse
 		if err := output.Write(result); err != nil {
 			gologger.Warning().Msgf("Could not write output event: %s\n", err)
 		}
