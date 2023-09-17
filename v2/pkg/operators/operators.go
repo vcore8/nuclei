@@ -299,12 +299,7 @@ func (operators *Operators) Execute(data map[string]interface{}, match MatchFunc
 				matcherName = matcher.Name
 			}
 
-			matchedConditions = append(matchedConditions, MatchedCondition{
-				Name:   matcherName,
-				Type:   matcher.Type.String(),
-				Part:   matcher.Part,
-				Values: matched,
-			})
+			result.Matches[matcherName] = matched
 			matches = true
 		} else if matcherCondition == matchers.ANDCondition {
 			if len(result.DynamicValues) > 0 {

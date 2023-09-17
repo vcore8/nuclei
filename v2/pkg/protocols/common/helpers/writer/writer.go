@@ -1,11 +1,23 @@
 package writer
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/nuclei/v2/pkg/output"
 	"github.com/projectdiscovery/nuclei/v2/pkg/progress"
 	"github.com/projectdiscovery/nuclei/v2/pkg/reporting"
 )
+
+func writeMatchedResponse(matches map[string][]string) string {
+	response := ""
+	for _, match := range matches {
+		response += fmt.Sprintf("%s \\r\\n", strings.Join(match, ", "))
+	}
+
+	return response
+}
 
 // WriteResult is a helper for writing results to the output
 func WriteResult(data *output.InternalWrappedEvent, output output.Writer, progress progress.Progress, issuesClient reporting.Client) bool {
@@ -17,7 +29,7 @@ func WriteResult(data *output.InternalWrappedEvent, output output.Writer, progre
 	}
 	var matched bool
 	for _, result := range data.Results {
-		result.MatchedResponse = data.OperatorsResult.MatchedResponse
+		result.MatchedResponse = writeMatchedResponse(data.OperatorsResult.Matches)
 		if err := output.Write(result); err != nil {
 			gologger.Warning().Msgf("Could not write output event: %s\n", err)
 		}
