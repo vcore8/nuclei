@@ -13,7 +13,7 @@ import (
 func writeMatchedResponse(matches map[string][]string) string {
 	response := ""
 	for _, match := range matches {
-		response += fmt.Sprintf("%s \\r\\n", strings.Join(match, ", "))
+		response += fmt.Sprintln(fmt.Sprintf("%s", strings.Join(match, ", ")))
 	}
 
 	return response
