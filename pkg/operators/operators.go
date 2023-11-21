@@ -69,6 +69,26 @@ func (operators *Operators) GetMatchersCondition() matchers.ConditionType {
 	return operators.matchersCondition
 }
 
+type MatchedCondition struct {
+	Name   string
+	Type   string
+	Part   string
+	Values []string
+}
+
+func matchedResponse(condition string, matched []MatchedCondition) string {
+	matcheds := []string{}
+	for _, v := range matched {
+		matcheds = append(matcheds, fmt.Sprintf("Math %s found in %s with name %s values: %s",
+			strings.ToUpper(v.Type),
+			strings.ToUpper(v.Part),
+			strings.ToUpper(v.Name),
+			strings.Join(v.Values, ", ")))
+	}
+
+	return strings.Join(matcheds, fmt.Sprintf(" %s \\r\\n", strings.ToUpper(condition)))
+}
+
 // Result is a result structure created from operators running on data.
 type Result struct {
 	// Matched is true if any matchers matched
@@ -90,6 +110,9 @@ type Result struct {
 
 	// Optional lineCounts for file protocol
 	LineCount string
+
+	//an report about the matched expression
+	MatchedResponse string
 }
 
 func (result *Result) HasMatch(name string) bool {
@@ -210,6 +233,7 @@ type ExtractFunc func(data map[string]interface{}, matcher *extractors.Extractor
 // Execute executes the operators on data and returns a result structure
 func (operators *Operators) Execute(data map[string]interface{}, match MatchFunc, extract ExtractFunc, isDebug bool) (*Result, bool) {
 	matcherCondition := operators.GetMatchersCondition()
+	matchedConditions := []MatchedCondition{}
 
 	var matches bool
 	result := &Result{
@@ -261,22 +285,26 @@ func (operators *Operators) Execute(data map[string]interface{}, match MatchFunc
 		data = generators.MergeMaps(data, dataDynamicValues)
 	}
 
-	for matcherIndex, matcher := range operators.Matchers {
+	for _, matcher := range operators.Matchers {
 		// Skip matchers that are in the blocklist
 		if operators.ExcludeMatchers != nil {
 			if operators.ExcludeMatchers.Match(operators.TemplateID, matcher.Name) {
 				continue
 			}
 		}
+
 		if isMatch, matched := match(data, matcher); isMatch {
-			if isDebug { // matchers without an explicit name or with AND condition should only be made visible if debug is enabled
-				matcherName := getMatcherName(matcher, matcherIndex)
-				result.Matches[matcherName] = matched
-			} else { // if it's a "named" matcher with OR condition, then display it
-				if matcherCondition == matchers.ORCondition && matcher.Name != "" {
-					result.Matches[matcher.Name] = matched
-				}
+			matcherName := matcher.Name
+
+			if matcherName == "" {
+				matcherName = matcher.Type.String()
 			}
+
+			if matcherCondition == matchers.ORCondition {
+				result.Matches[matcherName] = matched
+			}
+
+			matchedConditions = append(matchedConditions, MatchedCondition{Name: matcherName, Type: matcher.Type.String(), Part: matcher.Part, Values: matched})
 			matches = true
 		} else if matcherCondition == matchers.ANDCondition {
 			if len(result.DynamicValues) > 0 {
@@ -286,6 +314,7 @@ func (operators *Operators) Execute(data map[string]interface{}, match MatchFunc
 		}
 	}
 
+	result.MatchedResponse = matchedResponse(operators.MatchersCondition, matchedConditions)
 	result.Matched = matches
 	result.Extracted = len(result.OutputExtracts) > 0
 	if len(result.DynamicValues) > 0 {

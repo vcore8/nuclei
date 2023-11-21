@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 
@@ -20,18 +21,18 @@ import (
 //
 // All the execution logic for the templates/workflows happens in this part
 // of the engine.
-func (e *Engine) Execute(templates []*templates.Template, target InputProvider) *atomic.Bool {
-	return e.ExecuteScanWithOpts(templates, target, false)
+func (e *Engine) Execute(ctx context.Context, templates []*templates.Template, target InputProvider) *atomic.Bool {
+	return e.ExecuteScanWithOpts(ctx, templates, target, false)
 }
 
 // ExecuteWithResults a list of templates with results
-func (e *Engine) ExecuteWithResults(templatesList []*templates.Template, target InputProvider, callback func(*output.ResultEvent)) *atomic.Bool {
+func (e *Engine) ExecuteWithResults(ctx context.Context, templatesList []*templates.Template, target InputProvider, callback func(*output.ResultEvent)) *atomic.Bool {
 	e.Callback = callback
-	return e.ExecuteScanWithOpts(templatesList, target, false)
+	return e.ExecuteScanWithOpts(ctx, templatesList, target, false)
 }
 
 // ExecuteScanWithOpts executes scan with given scanStrategy
-func (e *Engine) ExecuteScanWithOpts(templatesList []*templates.Template, target InputProvider, noCluster bool) *atomic.Bool {
+func (e *Engine) ExecuteScanWithOpts(ctx context.Context, templatesList []*templates.Template, target InputProvider, noCluster bool) *atomic.Bool {
 	results := &atomic.Bool{}
 	selfcontainedWg := &sync.WaitGroup{}
 
@@ -83,14 +84,14 @@ func (e *Engine) ExecuteScanWithOpts(templatesList []*templates.Template, target
 	}
 
 	// Execute All SelfContained in parallel
-	e.executeAllSelfContained(selfContained, results, selfcontainedWg)
+	e.executeAllSelfContained(ctx, selfContained, results, selfcontainedWg)
 
 	strategyResult := &atomic.Bool{}
 	switch e.options.ScanStrategy {
 	case scanstrategy.TemplateSpray.String():
-		strategyResult = e.executeTemplateSpray(filtered, target)
+		strategyResult = e.executeTemplateSpray(ctx, filtered, target)
 	case scanstrategy.HostSpray.String():
-		strategyResult = e.executeHostSpray(filtered, target)
+		strategyResult = e.executeHostSpray(ctx, filtered, target)
 	}
 
 	results.CompareAndSwap(false, strategyResult.Load())
@@ -100,7 +101,7 @@ func (e *Engine) ExecuteScanWithOpts(templatesList []*templates.Template, target
 }
 
 // executeTemplateSpray executes scan using template spray strategy where targets are iterated over each template
-func (e *Engine) executeTemplateSpray(templatesList []*templates.Template, target InputProvider) *atomic.Bool {
+func (e *Engine) executeTemplateSpray(ctx context.Context, templatesList []*templates.Template, target InputProvider) *atomic.Bool {
 	results := &atomic.Bool{}
 
 	// wp is workpool that contains different waitgroups for
@@ -117,7 +118,7 @@ func (e *Engine) executeTemplateSpray(templatesList []*templates.Template, targe
 			wg = wp.Default
 		}
 
-		wg.Add()
+		wg.AddWithContext(ctx)
 		go func(tpl *templates.Template) {
 			defer wg.Done()
 			// All other request types are executed here
@@ -131,12 +132,12 @@ func (e *Engine) executeTemplateSpray(templatesList []*templates.Template, targe
 }
 
 // executeHostSpray executes scan using host spray strategy where templates are iterated over each target
-func (e *Engine) executeHostSpray(templatesList []*templates.Template, target InputProvider) *atomic.Bool {
+func (e *Engine) executeHostSpray(ctx context.Context, templatesList []*templates.Template, target InputProvider) *atomic.Bool {
 	results := &atomic.Bool{}
 	wp := sizedwaitgroup.New(e.options.BulkSize + e.options.HeadlessBulkSize)
 
 	target.Scan(func(value *contextargs.MetaInput) bool {
-		wp.Add()
+		wp.AddWithContext(ctx)
 		go func(targetval *contextargs.MetaInput) {
 			defer wp.Done()
 			e.executeTemplatesOnTarget(templatesList, targetval, results)

@@ -564,7 +564,7 @@ func (r *Runner) executeTemplatesInput(store *loader.Store, engine *core.Engine)
 		return nil, errors.New("no templates provided for scan")
 	}
 
-	results := engine.ExecuteScanWithOpts(finalTemplates, r.hmapInputProvider, r.options.DisableClustering)
+	results := engine.ExecuteScanWithOpts(context.Background(), finalTemplates, r.hmapInputProvider, r.options.DisableClustering)
 	return results, nil
 }
 
