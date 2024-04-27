@@ -126,7 +126,7 @@ func (e *Engine) executeTemplateSpray(ctx context.Context, templatesList []*temp
 			wg = wp.Default
 		}
 
-		wg.Add()
+		wg.AddWithContext(ctx)
 		go func(tpl *templates.Template) {
 			defer wg.Done()
 			// All other request types are executed here

@@ -176,7 +176,10 @@ type ResultEvent struct {
 	ReqURLPattern string `json:"req_url_pattern,omitempty"`
 
 	FileToIndexPosition map[string]int `json:"-"`
-	Error               string         `json:"error,omitempty"`
+
+	Error string `json:"error,omitempty"`
+	//an report about the matched expression
+	MatchedResponse string
 }
 
 type IssueTrackerMetadata struct {
