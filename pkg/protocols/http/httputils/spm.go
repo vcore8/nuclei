@@ -123,9 +123,11 @@ func (h *StopAtFirstMatchHandler[T]) MatchCallback(fn func()) {
 // run runs the internal handler
 func (h *StopAtFirstMatchHandler[T]) run(ctx context.Context) {
 	defer h.internalWg.Done()
+
 	for {
 		select {
 		case <-ctx.Done():
+			return
 		case val, ok := <-h.ResultChan:
 			if !ok {
 				return
@@ -181,10 +183,11 @@ func (h *StopAtFirstMatchHandler[T]) Release() {
 	}
 }
 
-func (h *StopAtFirstMatchHandler[T]) Resize(size int) {
+func (h *StopAtFirstMatchHandler[T]) Resize(ctx context.Context, size int) error {
 	if h.sgPool.Size != size {
-		h.sgPool.Resize(size)
+		return h.sgPool.Resize(ctx, size)
 	}
+	return nil
 }
 
 func (h *StopAtFirstMatchHandler[T]) Size() int {

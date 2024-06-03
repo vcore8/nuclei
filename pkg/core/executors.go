@@ -107,7 +107,7 @@ func (e *Engine) executeTemplateWithTargets(ctx context.Context, template *templ
 		currentInfo.Unlock()
 
 		// Skip if the host has had errors
-		if e.executerOpts.HostErrorsCache != nil && e.executerOpts.HostErrorsCache.Check(scannedValue.ID()) {
+		if e.executerOpts.HostErrorsCache != nil && e.executerOpts.HostErrorsCache.Check(contextargs.NewWithMetaInput(ctx, scannedValue)) {
 			return true
 		}
 
@@ -211,55 +211,4 @@ func (e *Engine) executeTemplatesOnTarget(ctx context.Context, alltemplates []*t
 		}(tpl, target, sg)
 	}
 	wp.Wait()
-}
-
-type ChildExecuter struct {
-	e *Engine
-
-	results *atomic.Bool
-}
-
-// Close closes the executer returning bool results
-func (e *ChildExecuter) Close() *atomic.Bool {
-	e.e.workPool.Wait()
-	return e.results
-}
-
-// Execute executes a template and URLs
-func (e *ChildExecuter) Execute(template *templates.Template, value *contextargs.MetaInput) {
-	templateType := template.Type()
-
-	// resize check point - nop if there are no changes
-	e.e.WorkPool().RefreshWithConfig(e.e.GetWorkPoolConfig())
-
-	var wg *syncutil.AdaptiveWaitGroup
-	if templateType == types.HeadlessProtocol {
-		wg = e.e.workPool.Headless
-	} else {
-		wg = e.e.workPool.Default
-	}
-
-	wg.Add()
-	go func(tpl *templates.Template) {
-		defer wg.Done()
-
-		// TODO: Workflows are a no-op for now. We need to
-		// implement them in the future with context cancellation
-		ctxArgs := contextargs.New(context.Background())
-		ctxArgs.MetaInput = value
-		ctx := scan.NewScanContext(context.Background(), ctxArgs)
-		match, err := template.Executer.Execute(ctx)
-		if err != nil {
-			gologger.Warning().Msgf("[%s] Could not execute step: %s\n", e.e.executerOpts.Colorizer.BrightBlue(template.ID), err)
-		}
-		e.results.CompareAndSwap(false, match)
-	}(template)
-}
-
-// ExecuteWithOpts executes with the full options
-func (e *Engine) ChildExecuter() *ChildExecuter {
-	return &ChildExecuter{
-		e:       e,
-		results: &atomic.Bool{},
-	}
 }
