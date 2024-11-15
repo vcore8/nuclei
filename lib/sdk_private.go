@@ -3,10 +3,11 @@ package nuclei
 import (
 	"context"
 	"fmt"
-	"github.com/projectdiscovery/nuclei/v3/pkg/input"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/projectdiscovery/nuclei/v3/pkg/input"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/pkg/errors"
@@ -72,7 +73,7 @@ func (e *NucleiEngine) applyRequiredDefaults(ctx context.Context) {
 	if e.customProgress == nil {
 		e.customProgress = &testutils.MockProgressClient{}
 	}
-	if e.hostErrCache == nil {
+	if e.hostErrCache == nil && e.opts.ShouldUseHostError() {
 		e.hostErrCache = hosterrorscache.New(30, hosterrorscache.DefaultMaxHostsCount, nil)
 	}
 	// setup interactsh
@@ -173,6 +174,9 @@ func (e *NucleiEngine) init(ctx context.Context) error {
 		Browser:         e.browserInstance,
 		Parser:          e.parser,
 		InputHelper:     input.NewHelper(),
+	}
+	if e.opts.ShouldUseHostError() && e.hostErrCache != nil {
+		e.executerOpts.HostErrorsCache = e.hostErrCache
 	}
 	if len(e.opts.SecretsFile) > 0 {
 		authTmplStore, err := runner.GetAuthTmplStore(*e.opts, e.catalog, e.executerOpts)

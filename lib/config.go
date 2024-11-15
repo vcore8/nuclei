@@ -118,11 +118,14 @@ type Concurrency struct {
 	JavascriptTemplateConcurrency int // number of templates to run concurrently for javascript templates (per host in host-spray mode)
 	TemplatePayloadConcurrency    int // max concurrent payloads to run for a template (a good default is 25)
 	ProbeConcurrency              int // max concurrent http probes to run (a good default is 50)
+	MaxRedirects                  int
 }
 
 // WithConcurrency sets concurrency options
 func WithConcurrency(opts Concurrency) NucleiSDKOptions {
 	return func(e *NucleiEngine) error {
+		e.opts.MaxRedirects = opts.MaxRedirects
+
 		// minimum required is 1
 		if opts.TemplateConcurrency <= 0 {
 			return errors.New("template threads must be at least 1")
@@ -286,10 +289,23 @@ func WithNetworkConfig(opts NetworkConfig) NucleiSDKOptions {
 		if e.mode == threadSafe {
 			return ErrOptionsNotSupported.Msgf("WithNetworkConfig")
 		}
+		e.opts.NoHostErrors = opts.DisableMaxHostErr
+		e.opts.MaxHostError = opts.MaxHostError
+		if e.opts.ShouldUseHostError() {
+			maxHostError := opts.MaxHostError
+			if e.opts.TemplateThreads > maxHostError {
+				gologger.Print().Msgf("[%v] The concurrency value is higher than max-host-error", e.executerOpts.Colorizer.BrightYellow("WRN"))
+				gologger.Info().Msgf("Adjusting max-host-error to the concurrency value: %d", e.opts.TemplateThreads)
+				maxHostError = e.opts.TemplateThreads
+				e.opts.MaxHostError = maxHostError
+			}
+			cache := hosterrorscache.New(maxHostError, hosterrorscache.DefaultMaxHostsCount, e.opts.TrackError)
+			cache.SetVerbose(e.opts.Verbose)
+			e.hostErrCache = cache
+		}
 		e.opts.Timeout = opts.Timeout
 		e.opts.Retries = opts.Retries
 		e.opts.LeaveDefaultPorts = opts.LeaveDefaultPorts
-		e.hostErrCache = hosterrorscache.New(opts.MaxHostError, hosterrorscache.DefaultMaxHostsCount, opts.TrackError)
 		e.opts.Interface = opts.Interface
 		e.opts.SourceIP = opts.SourceIP
 		e.opts.SystemResolvers = opts.SystemResolvers

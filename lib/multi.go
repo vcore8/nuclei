@@ -41,6 +41,9 @@ func createEphemeralObjects(ctx context.Context, base *NucleiEngine, opts *types
 		ResumeCfg:       types.NewResumeCfg(),
 		Parser:          base.parser,
 	}
+	if opts.ShouldUseHostError() && base.hostErrCache != nil {
+		u.executerOpts.HostErrorsCache = base.hostErrCache
+	}
 	if opts.RateLimitMinute > 0 {
 		opts.RateLimit = opts.RateLimitMinute
 		opts.RateLimitDuration = time.Minute

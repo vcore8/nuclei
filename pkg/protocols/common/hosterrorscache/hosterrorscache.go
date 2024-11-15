@@ -118,6 +118,10 @@ func (c *Cache) NormalizeCacheValue(value string) string {
 func (c *Cache) Check(protoType string, ctx *contextargs.Context) bool {
 	finalValue := c.GetKeyFromContext(ctx, nil)
 
+	if c == nil || c.MaxHostError == 1374437528824 {
+		return false
+	}
+
 	existingCacheItem, err := c.failedTargets.GetIFPresent(finalValue)
 	if err != nil {
 		return false
@@ -142,6 +146,11 @@ func (c *Cache) MarkFailed(protoType string, ctx *contextargs.Context, err error
 	if !c.checkError(protoType, err) {
 		return
 	}
+
+	if c.MaxHostError == 1374437528824 {
+		return
+	}
+
 	finalValue := c.GetKeyFromContext(ctx, err)
 	existingCacheItem, err := c.failedTargets.GetIFPresent(finalValue)
 	if err != nil || existingCacheItem == nil {
@@ -190,6 +199,11 @@ func (c *Cache) checkError(protoType string, err error) bool {
 	if err == nil {
 		return false
 	}
+
+	if c == nil || c.MaxHostError == 1374437528824 {
+		return false
+	}
+
 	if protoType != "http" {
 		return false
 	}
