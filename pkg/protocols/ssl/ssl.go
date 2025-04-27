@@ -417,21 +417,22 @@ func (request *Request) MakeResultEventItem(wrapped *output.InternalWrappedEvent
 		fields.Port = types.ToString(wrapped.InternalEvent["Port"])
 	}
 	data := &output.ResultEvent{
-		TemplateID:       types.ToString(wrapped.InternalEvent["template-id"]),
-		TemplatePath:     types.ToString(wrapped.InternalEvent["template-path"]),
-		Info:             wrapped.InternalEvent["template-info"].(model.Info),
-		TemplateVerifier: request.options.TemplateVerifier,
-		Type:             types.ToString(wrapped.InternalEvent["type"]),
-		Host:             fields.Host,
-		Port:             fields.Port,
-		Matched:          types.ToString(wrapped.InternalEvent["matched"]),
-		Metadata:         wrapped.OperatorsResult.PayloadValues,
-		ExtractedResults: wrapped.OperatorsResult.OutputExtracts,
-		Timestamp:        time.Now(),
-		MatcherStatus:    true,
-		IP:               fields.Ip,
-		TemplateEncoded:  request.options.EncodeTemplate(),
-		Error:            types.ToString(wrapped.InternalEvent["error"]),
+		TemplateID:        types.ToString(wrapped.InternalEvent["template-id"]),
+		TemplatePath:      types.ToString(wrapped.InternalEvent["template-path"]),
+		Info:              wrapped.InternalEvent["template-info"].(model.Info),
+		TemplateVerifier:  request.options.TemplateVerifier,
+		Type:              types.ToString(wrapped.InternalEvent["type"]),
+		Host:              fields.Host,
+		Port:              fields.Port,
+		Matched:           types.ToString(wrapped.InternalEvent["matched"]),
+		Metadata:          wrapped.OperatorsResult.PayloadValues,
+		ExtractedResults:  wrapped.OperatorsResult.OutputExtracts,
+		Timestamp:         time.Now(),
+		MatcherStatus:     true,
+		IP:                fields.Ip,
+		TemplateEncoded:   request.options.EncodeTemplate(),
+		Error:             types.ToString(wrapped.InternalEvent["error"]),
+		MatchedConditions: wrapped.OperatorsResult.MatchedConditions,
 	}
 	return data
 }

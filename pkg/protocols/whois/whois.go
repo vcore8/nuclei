@@ -174,20 +174,21 @@ func (request *Request) GetCompiledOperators() []*operators.Operators {
 
 func (request *Request) MakeResultEventItem(wrapped *output.InternalWrappedEvent) *output.ResultEvent {
 	data := &output.ResultEvent{
-		TemplateID:       types.ToString(request.options.TemplateID),
-		TemplatePath:     types.ToString(request.options.TemplatePath),
-		Info:             request.options.TemplateInfo,
-		TemplateVerifier: request.options.TemplateVerifier,
-		Type:             types.ToString(wrapped.InternalEvent["type"]),
-		Host:             types.ToString(wrapped.InternalEvent["host"]),
-		Metadata:         wrapped.OperatorsResult.PayloadValues,
-		ExtractedResults: wrapped.OperatorsResult.OutputExtracts,
-		Timestamp:        time.Now(),
-		MatcherStatus:    true,
-		Request:          types.ToString(wrapped.InternalEvent["request"]),
-		Response:         types.ToString(wrapped.InternalEvent["response"]),
-		TemplateEncoded:  request.options.EncodeTemplate(),
-		Error:            types.ToString(wrapped.InternalEvent["error"]),
+		TemplateID:        types.ToString(request.options.TemplateID),
+		TemplatePath:      types.ToString(request.options.TemplatePath),
+		Info:              request.options.TemplateInfo,
+		TemplateVerifier:  request.options.TemplateVerifier,
+		Type:              types.ToString(wrapped.InternalEvent["type"]),
+		Host:              types.ToString(wrapped.InternalEvent["host"]),
+		Metadata:          wrapped.OperatorsResult.PayloadValues,
+		ExtractedResults:  wrapped.OperatorsResult.OutputExtracts,
+		Timestamp:         time.Now(),
+		MatcherStatus:     true,
+		Request:           types.ToString(wrapped.InternalEvent["request"]),
+		Response:          types.ToString(wrapped.InternalEvent["response"]),
+		TemplateEncoded:   request.options.EncodeTemplate(),
+		Error:             types.ToString(wrapped.InternalEvent["error"]),
+		MatchedConditions: wrapped.OperatorsResult.MatchedConditions,
 	}
 	return data
 }

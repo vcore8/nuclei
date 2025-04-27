@@ -100,20 +100,21 @@ func (request *Request) GetCompiledOperators() []*operators.Operators {
 // Deprecated: unused in stream mode, must be present for interface compatibility
 func (request *Request) MakeResultEventItem(wrapped *output.InternalWrappedEvent) *output.ResultEvent {
 	data := &output.ResultEvent{
-		MatcherStatus:    true,
-		TemplateID:       types.ToString(wrapped.InternalEvent["template-id"]),
-		TemplatePath:     types.ToString(wrapped.InternalEvent["template-path"]),
-		Info:             wrapped.InternalEvent["template-info"].(model.Info),
-		TemplateVerifier: request.options.TemplateVerifier,
-		Type:             types.ToString(wrapped.InternalEvent["type"]),
-		Path:             types.ToString(wrapped.InternalEvent["path"]),
-		Matched:          types.ToString(wrapped.InternalEvent["matched"]),
-		Host:             types.ToString(wrapped.InternalEvent["host"]),
-		ExtractedResults: wrapped.OperatorsResult.OutputExtracts,
-		Response:         types.ToString(wrapped.InternalEvent["raw"]),
-		Timestamp:        time.Now(),
-		TemplateEncoded:  request.options.EncodeTemplate(),
-		Error:            types.ToString(wrapped.InternalEvent["error"]),
+		MatcherStatus:     true,
+		TemplateID:        types.ToString(wrapped.InternalEvent["template-id"]),
+		TemplatePath:      types.ToString(wrapped.InternalEvent["template-path"]),
+		Info:              wrapped.InternalEvent["template-info"].(model.Info),
+		TemplateVerifier:  request.options.TemplateVerifier,
+		Type:              types.ToString(wrapped.InternalEvent["type"]),
+		Path:              types.ToString(wrapped.InternalEvent["path"]),
+		Matched:           types.ToString(wrapped.InternalEvent["matched"]),
+		Host:              types.ToString(wrapped.InternalEvent["host"]),
+		ExtractedResults:  wrapped.OperatorsResult.OutputExtracts,
+		Response:          types.ToString(wrapped.InternalEvent["raw"]),
+		Timestamp:         time.Now(),
+		TemplateEncoded:   request.options.EncodeTemplate(),
+		Error:             types.ToString(wrapped.InternalEvent["error"]),
+		MatchedConditions: wrapped.OperatorsResult.MatchedConditions,
 	}
 	return data
 }

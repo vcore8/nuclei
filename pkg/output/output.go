@@ -214,6 +214,9 @@ type ResultEvent struct {
 	FileToIndexPosition map[string]int `json:"-"`
 	TemplateVerifier    string         `json:"-"`
 	Error               string         `json:"error,omitempty"`
+
+	//expose response matched conditions
+	MatchedConditions operators.MatchedConditions
 }
 
 type IssueTrackerMetadata struct {

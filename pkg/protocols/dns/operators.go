@@ -111,20 +111,21 @@ func (request *Request) MakeResultEvent(wrapped *output.InternalWrappedEvent) []
 
 func (request *Request) MakeResultEventItem(wrapped *output.InternalWrappedEvent) *output.ResultEvent {
 	data := &output.ResultEvent{
-		TemplateID:       types.ToString(wrapped.InternalEvent["template-id"]),
-		TemplatePath:     types.ToString(wrapped.InternalEvent["template-path"]),
-		Info:             wrapped.InternalEvent["template-info"].(model.Info),
-		TemplateVerifier: request.options.TemplateVerifier,
-		Type:             types.ToString(wrapped.InternalEvent["type"]),
-		Host:             types.ToString(wrapped.InternalEvent["host"]),
-		Matched:          types.ToString(wrapped.InternalEvent["matched"]),
-		ExtractedResults: wrapped.OperatorsResult.OutputExtracts,
-		MatcherStatus:    true,
-		Timestamp:        time.Now(),
-		Request:          types.ToString(wrapped.InternalEvent["request"]),
-		Response:         types.ToString(wrapped.InternalEvent["raw"]),
-		TemplateEncoded:  request.options.EncodeTemplate(),
-		Error:            types.ToString(wrapped.InternalEvent["error"]),
+		TemplateID:        types.ToString(wrapped.InternalEvent["template-id"]),
+		TemplatePath:      types.ToString(wrapped.InternalEvent["template-path"]),
+		Info:              wrapped.InternalEvent["template-info"].(model.Info),
+		TemplateVerifier:  request.options.TemplateVerifier,
+		Type:              types.ToString(wrapped.InternalEvent["type"]),
+		Host:              types.ToString(wrapped.InternalEvent["host"]),
+		Matched:           types.ToString(wrapped.InternalEvent["matched"]),
+		ExtractedResults:  wrapped.OperatorsResult.OutputExtracts,
+		MatcherStatus:     true,
+		Timestamp:         time.Now(),
+		Request:           types.ToString(wrapped.InternalEvent["request"]),
+		Response:          types.ToString(wrapped.InternalEvent["raw"]),
+		TemplateEncoded:   request.options.EncodeTemplate(),
+		Error:             types.ToString(wrapped.InternalEvent["error"]),
+		MatchedConditions: wrapped.OperatorsResult.MatchedConditions,
 	}
 	return data
 }

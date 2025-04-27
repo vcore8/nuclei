@@ -85,6 +85,18 @@ func (operators *Operators) GetMatchersCondition() matchers.ConditionType {
 	return operators.matchersCondition
 }
 
+type MatchedResponse struct {
+	Name   string
+	Type   string
+	Part   string
+	Values []string
+}
+
+type MatchedConditions struct {
+	Condition string
+	Matcheds  []MatchedResponse
+}
+
 // Result is a result structure created from operators running on data.
 type Result struct {
 	// Matched is true if any matchers matched
@@ -108,6 +120,9 @@ type Result struct {
 	LineCount string
 	// Operators is reference to operators that generated this result (Read-Only)
 	Operators *Operators
+
+	//expose response matched conditions
+	MatchedConditions MatchedConditions
 }
 
 func (result *Result) HasMatch(name string) bool {
@@ -294,6 +309,10 @@ func (operators *Operators) Execute(data map[string]interface{}, match MatchFunc
 		data = generators.MergeMaps(data, dataDynamicValues)
 	}
 
+	result.MatchedConditions = MatchedConditions{
+		Condition: operators.MatchersCondition,
+		Matcheds:  []MatchedResponse{},
+	}
 	for matcherIndex, matcher := range operators.Matchers {
 		// Skip matchers that are in the blocklist
 		if operators.ExcludeMatchers != nil {
@@ -302,14 +321,16 @@ func (operators *Operators) Execute(data map[string]interface{}, match MatchFunc
 			}
 		}
 		if isMatch, matched := match(data, matcher); isMatch {
+			matcherName := GetMatcherName(matcher, matcherIndex)
 			if isDebug { // matchers without an explicit name or with AND condition should only be made visible if debug is enabled
-				matcherName := GetMatcherName(matcher, matcherIndex)
 				result.Matches[matcherName] = matched
 			} else { // if it's a "named" matcher with OR condition, then display it
 				if matcherCondition == matchers.ORCondition && matcher.Name != "" {
 					result.Matches[matcher.Name] = matched
 				}
 			}
+
+			result.MatchedConditions.Matcheds = append(result.MatchedConditions.Matcheds, MatchedResponse{Name: matcherName, Type: matcher.Type.String(), Part: matcher.Part, Values: matched})
 			matches = true
 		} else if matcherCondition == matchers.ANDCondition {
 			if len(result.DynamicValues) > 0 {

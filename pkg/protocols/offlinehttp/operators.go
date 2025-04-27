@@ -142,21 +142,22 @@ func (request *Request) GetCompiledOperators() []*operators.Operators {
 
 func (request *Request) MakeResultEventItem(wrapped *output.InternalWrappedEvent) *output.ResultEvent {
 	data := &output.ResultEvent{
-		TemplateID:       types.ToString(wrapped.InternalEvent["template-id"]),
-		TemplatePath:     types.ToString(wrapped.InternalEvent["template-path"]),
-		Info:             wrapped.InternalEvent["template-info"].(model.Info),
-		TemplateVerifier: request.options.TemplateVerifier,
-		Type:             types.ToString(wrapped.InternalEvent["type"]),
-		Path:             types.ToString(wrapped.InternalEvent["path"]),
-		Matched:          types.ToString(wrapped.InternalEvent["matched"]),
-		Metadata:         wrapped.OperatorsResult.PayloadValues,
-		ExtractedResults: wrapped.OperatorsResult.OutputExtracts,
-		MatcherStatus:    true,
-		IP:               types.ToString(wrapped.InternalEvent["ip"]),
-		Request:          types.ToString(wrapped.InternalEvent["request"]),
-		Response:         types.ToString(wrapped.InternalEvent["raw"]),
-		TemplateEncoded:  request.options.EncodeTemplate(),
-		Error:            types.ToString(wrapped.InternalEvent["error"]),
+		TemplateID:        types.ToString(wrapped.InternalEvent["template-id"]),
+		TemplatePath:      types.ToString(wrapped.InternalEvent["template-path"]),
+		Info:              wrapped.InternalEvent["template-info"].(model.Info),
+		TemplateVerifier:  request.options.TemplateVerifier,
+		Type:              types.ToString(wrapped.InternalEvent["type"]),
+		Path:              types.ToString(wrapped.InternalEvent["path"]),
+		Matched:           types.ToString(wrapped.InternalEvent["matched"]),
+		Metadata:          wrapped.OperatorsResult.PayloadValues,
+		ExtractedResults:  wrapped.OperatorsResult.OutputExtracts,
+		MatcherStatus:     true,
+		IP:                types.ToString(wrapped.InternalEvent["ip"]),
+		Request:           types.ToString(wrapped.InternalEvent["request"]),
+		Response:          types.ToString(wrapped.InternalEvent["raw"]),
+		TemplateEncoded:   request.options.EncodeTemplate(),
+		Error:             types.ToString(wrapped.InternalEvent["error"]),
+		MatchedConditions: wrapped.OperatorsResult.MatchedConditions,
 	}
 	return data
 }
