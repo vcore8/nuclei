@@ -422,8 +422,11 @@ func getJSONLogRequestFromError(templatePath, input, requestType string, request
 		request.Address += ":" + port
 	}
 	errX := errkit.FromError(requestErr)
-	if errX == nil && requestErr != nil {
-		request.Error = requestErr.Error()
+	if errX == nil {
+		request.Error = "none"
+		if requestErr != nil {
+			request.Error = requestErr.Error()
+		}
 	} else {
 		request.Kind = errkit.ErrKindUnknown.String()
 		var cause error
