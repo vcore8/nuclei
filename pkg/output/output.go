@@ -423,7 +423,7 @@ func getJSONLogRequestFromError(templatePath, input, requestType string, request
 	}
 	errX := errkit.FromError(requestErr)
 	if errX == nil {
-		request.Error = "none"
+		request.Error = requestErr.Error()
 	} else {
 		request.Kind = errkit.ErrKindUnknown.String()
 		var cause error
